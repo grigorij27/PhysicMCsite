@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsMC - Сервер Minecraft | Обучение физике</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2ecc71;
+            --secondary: #e74c3c;
+            --accent: #f39c12;
+            --dark: #1a1a2e;
+            --darker: #0f0f1e;
+            --text-light: #ecf0f1;
+            --text-dim: #bdc3c7;
+            --block-grass: #2d5016;
+            --block-dirt: #8b6f47;
+            --block-stone: #7a7a7a;
+        }
+
+        body {
+            font-family: 'Minecraft', 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--darker) 0%, #1a2a3a 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Фоновая анимация неба */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Сетка блоков фона */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 40px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(42, 34, 10, 0.95), rgba(61, 39, 16, 0.95));
+            border-bottom: 4px solid var(--primary);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: 2px solid var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        nav a:hover {
+            background: var(--primary);
+            color: var(--darker);
+            border: 2px solid var(--primary);
+            transform: scale(1.05);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            padding: 4rem 0;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            text-shadow: 3px 3px 0 var(--secondary), 6px 6px 0 rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: inherit;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #27ae60);
+            color: var(--darker);
+            border: 3px solid var(--text-light);
+        }
+
+        .btn-primary:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 0 8px 16px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 3px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent);
+            color: var(--darker);
+            transform: translate(-3px, -3px);
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .minecraft-cube {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            animation: rotate3d 6s linear infinite;
+            perspective: 1000px;
+        }
+
+        @keyframes rotate3d {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(0deg); }
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            border: 3px solid var(--text-light);
+            opacity: 0.9;
+        }
+
+        .face-grass { 
+            background: var(--block-grass);
+            transform: translateZ(100px);
+        }
+        .face-dirt { 
+            background: var(--block-dirt);
+            transform: rotateY(180deg) translateZ(100px);
+        }
+        .face-stone { 
+            background: var(--block-stone);
+            transform: rotateY(90deg) translateZ(100px);
+        }
+        .face-ore { 
+            background: linear-gradient(135deg, #d4af37, #ffd700);
+            transform: rotateY(-90deg) translateZ(100px);
+        }
+
+        /* Sections */
+        section {
+            margin: 4rem 0;
+            padding: 3rem 2rem;
+            background: rgba(26, 26, 46, 0.7);
+            border: 3px solid var(--primary);
+            position: relative;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--accent);
+            text-shadow: 2px 2px 0 var(--primary);
+            text-transform: uppercase;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .course-card {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(230, 126, 34, 0.1));
+            border: 2px solid var(--primary);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .course-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+
+        .course-card:hover {
+            transform: translate(-5px, -5px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+        }
+
+        .course-card:hover::before {
+            opacity: 0.1;
+            top: 0;
+        }
+
+        .course-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .course-card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 1.5rem;
+            border: 2px dashed var(--accent);
+            background: rgba(243, 156, 18, 0.05);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Server Status */
+        .status-box {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05));
+            border: 3px solid var(--primary);
+            padding: 2rem;
+            border-radius: 4px;
+            margin: 2rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border: 2px solid var(--text-light);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+        }
+
+        .status-item h4 {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .status-item p {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker);
+            border-top: 4px solid var(--primary);
+            padding: 2rem;
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            nav {
+                gap: 1rem;
+            }
+
+            nav a {
+                padding: 0.3rem 0.7rem;
+                font-size: 0.8rem;
+            }
+
+            .minecraft-cube {
+                width: 150px;
+                height: 150px;
+            }
+
+            .cube-face {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">⚛️</div>
+                <span>PhysicsMC</span>
+            </div>
+            <nav>
+                <a href="#courses">Курсы</a>
+                <a href="#features">Возможности</a>
+                <a href="#about">О Нас</a>
+                <a href="#contact">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-text">
+                <h1>⚡ PhysicsMC</h1>
+                <p>Изучай физику, играя в Minecraft! Наш сервер делает науку увлекательной и доступной для детей любого возраста.</p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary">🚀 Присоединиться</button>
+                    <button class="btn btn-secondary">📖 Узнать больше</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="minecraft-cube">
+                    <div class="cube-face face-grass">🌱</div>
+                    <div class="cube-face face-dirt"></div>
+                    <div class="cube-face face-stone">⚙️</div>
+                    <div class="cube-face face-ore">⭐</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Courses Section -->
+        <section id="courses">
+            <h2>📚 Наши Курсы</h2>
+            <div class="courses-grid">
+                <div class="course-card">
+                    <div class="course-icon">🔋</div>
+                    <h3>Механика</h3>
+                    <p>Изучай законы движения, силу и энергию через игровые механики Minecraft</p>
+                </div>
+                <div class="course-card">
+                    <div class="course-icon">🌈</div>
+                    <h3>Оптика</h3>
+                    <p>Открой секреты света, преломления и цвета на блокчейне кубиков</p>
+                </div>
+                <div class="course-card">
+                    <div class="course-icon">⚛️</div>
+                    <h3>Атомы</h3>
+                    <p>Погрузись в квантовый мир и постройте молекулы из блоков</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features">
+            <h2>✨ Почему PhysicsMC?</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Геймификация</h3>
+                    <p>Учись играя - получай награды и достижения</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Сообщество</h3>
+                    <p>Общайся с другими учениками со всего мира</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Прогресс</h3>
+                    <p>Отслеживай свои достижения и улучшайся каждый день</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎁</div>
+                    <h3>Бесплатно</h3>
+                    <p>Полный доступ ко всем курсам без платежей</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>24/7 Доступ</h3>
+                    <p>Играй и учись в удобное для тебя время</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about">
+            <h2>📖 О Нас</h2>
+            <!-- Здесь вы можете добавить информацию о сервере -->
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact">
+            <h2>📧 Свяжитесь с Нами</h2>
+            <p style="margin-bottom: 2rem; font-size: 1.1rem;">Есть вопросы? Хотите присоединиться? Напишите нам!</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div style="text-align: center;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">📧 Email</h3>
+                    <p><a href="mailto:info@physicsmc.ru">info@physicsmc.ru</a></p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">💬 Discord</h3>
+                    <p><a href="#">Присоединиться к серверу</a></p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">📱 Соцсети</h3>
+                    <p><a href="#">@PhysicsMC</a></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 PhysicsMC - Сервер обучающего Minecraft для изучения физики</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">Разработано с ❤️ для юных учёных</p>
+    </footer>
+</body>
+</html>
